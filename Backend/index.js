@@ -7,6 +7,9 @@ const cookieParser = require('cookie-parser');
 const authRoutes = require('./src/routes/auth');
 const appsRoutes = require('./src/routes/apps');
 const devRoutes = require('./src/routes/dev');
+const adminRoutes = require('./src/routes/admin');
+const chatbotRoutes = require('./src/routes/chatbot');
+const profileRoutes = require('./src/routes/profile');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -37,6 +40,9 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/apps', appsRoutes);    // public & app-related routes
 app.use('/api/dev', devRoutes);      // developer routes
+app.use('/api/admin', adminRoutes);  // admin routes
+app.use('/api/chatbot', chatbotRoutes); // chatbot routes
+app.use('/api/profile', profileRoutes); // profile routes
 
 // Error handling middleware
 app.use((err, req, res, next) => {

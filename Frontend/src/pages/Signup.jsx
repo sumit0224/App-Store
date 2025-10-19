@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiService from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { signup } = useAuth();
+  const { isDarkMode } = useTheme();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -75,14 +79,14 @@ export default function Signup() {
     if (Object.keys(newErrors).length === 0) {
       setIsLoading(true);
       try {
-        const response = await apiService.signup(
+        await signup(
           formData.fullName,
           formData.email,
           formData.password
         );
-        console.log('Signup successful:', response);
-        alert('Account created successfully! Welcome!');
-        navigate('/dashboard');
+        console.log('Signup successful!');
+        // Navigate to dashboard after successful signup
+        navigate('/dashboard', { replace: true });
       } catch (error) {
         console.error('Signup failed:', error);
         alert(`Signup failed: ${error.message}`);
@@ -102,13 +106,26 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4 py-12">
-      <div className="relative">
+    <div className={`min-h-screen flex items-center justify-center p-4 py-12 transition-colors duration-200 ${
+      isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+    }`}>
+      <div className="relative w-full max-w-md">
+        {/* Theme toggle */}
+        <div className="absolute top-4 right-4 z-10">
+          <ThemeToggle />
+        </div>
+
         {/* Glowing border effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-400 via-purple-500 to-blue-500 rounded-3xl blur-2xl opacity-50"></div>
+        <div className={`absolute inset-0 rounded-3xl blur-2xl opacity-50 ${
+          isDarkMode 
+            ? 'bg-gradient-to-br from-green-400 via-purple-500 to-blue-500' 
+            : 'bg-gradient-to-br from-green-400 via-purple-500 to-blue-500'
+        }`}></div>
         
         {/* Main card */}
-        <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
+        <div className={`relative rounded-3xl shadow-2xl w-full p-8 transition-colors duration-200 ${
+          isDarkMode ? 'bg-gray-800' : 'bg-white'
+        }`}>
           
         
 

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Store, User, Settings, BarChart3, Plus } from 'lucide-react';
 import apiService from '../services/api';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,7 +41,7 @@ export default function Dashboard() {
   };
 
   const handleLogout = () => {
-    apiService.clearToken();
+    logout();
     navigate('/login');
   };
 
@@ -59,19 +62,107 @@ export default function Dashboard() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-gray-900">App Store Dashboard</h1>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Logout
-            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">App Store Dashboard</h1>
+              {user && (
+                <p className="text-gray-600 mt-1">Welcome back, {user.name || user.email}!</p>
+              )}
+            </div>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
+      {/* Navigation */}
+      <nav className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-8">
+            <Link
+              to="/store"
+              className="flex items-center px-3 py-4 text-sm font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300"
+            >
+              <Store className="h-5 w-5 mr-2" />
+              App Store
+            </Link>
+            <Link
+              to="/developer"
+              className="flex items-center px-3 py-4 text-sm font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Developer Portal
+            </Link>
+            {user?.role === 'admin' && (
+              <Link
+                to="/admin"
+                className="flex items-center px-3 py-4 text-sm font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300"
+              >
+                <BarChart3 className="h-5 w-5 mr-2" />
+                Admin Panel
+              </Link>
+            )}
+          </div>
+        </div>
+      </nav>
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Link
+            to="/store"
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Store className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">Browse Apps</h3>
+                <p className="text-gray-600">Discover and download apps</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            to="/developer"
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center">
+              <div className="p-3 bg-green-100 rounded-lg">
+                <Plus className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">Developer Portal</h3>
+                <p className="text-gray-600">Create and manage your apps</p>
+              </div>
+            </div>
+          </Link>
+
+          {user?.role === 'admin' && (
+            <Link
+              to="/admin"
+              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            >
+              <div className="flex items-center">
+                <div className="p-3 bg-purple-100 rounded-lg">
+                  <BarChart3 className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Admin Panel</h3>
+                  <p className="text-gray-600">Manage the platform</p>
+                </div>
+              </div>
+            </Link>
+          )}
+        </div>
+
         {/* Search Bar */}
         <div className="mb-8">
           <div className="flex gap-4">
@@ -115,9 +206,12 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors">
+                  <Link
+                    to={`/app/${app.slug}`}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors block text-center"
+                  >
                     View Details
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))

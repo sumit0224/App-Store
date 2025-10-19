@@ -21,6 +21,13 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
 
+    // Profile information
+    phone: { type: String, trim: true },
+    bio: { type: String, maxlength: 500 },
+    location: { type: String, trim: true, maxlength: 100 },
+    website: { type: String, trim: true },
+    avatar: { type: String },
+
     developerProfile: {
       company: String,
       website: String,
@@ -54,8 +61,15 @@ userSchema.methods.publicProfile = function () {
     name: this.name,
     email: this.email,
     role: this.role,
+    phone: this.phone,
+    bio: this.bio,
+    location: this.location,
+    website: this.website,
+    avatar: this.avatar,
     developerProfile: this.developerProfile,
     credits: this.credits,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt,
   };
 };
 

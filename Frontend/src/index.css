@@ -1,1 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Playwrite+USA+Modern:wght@100..400&display=swap');
 @import "tailwindcss";
+
+:root { --font-sans: "Playwrite USA Modern", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; }
+
+html { font-family: var(--font-sans); }
+body { font-family: var(--font-sans); }

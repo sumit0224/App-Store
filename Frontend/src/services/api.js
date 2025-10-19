@@ -100,6 +100,15 @@ class ApiService {
   }
 
   // Developer endpoints
+  async getDeveloperApps(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/dev/apps${queryString ? `?${queryString}` : ''}`);
+  }
+
+  async getDeveloperStats() {
+    return this.request('/dev/stats');
+  }
+
   async createApp(appData) {
     return this.request('/dev/apps', {
       method: 'POST',
@@ -124,6 +133,68 @@ class ApiService {
   async publishApp(appId) {
     return this.request(`/dev/apps/${appId}/publish`, {
       method: 'POST',
+    });
+  }
+
+  // ChatBot endpoints
+  async sendChatMessage(message, context = 'app_store') {
+    return this.request('/chatbot', {
+      method: 'POST',
+      body: JSON.stringify({ message, context }),
+    });
+  }
+
+  async getChatSuggestions(page = 'home') {
+    return this.request(`/chatbot/suggestions?page=${page}`);
+  }
+
+  // Profile endpoints
+  async updateProfile(profileData) {
+    return this.request('/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  async uploadProfileImage(imageFile) {
+    // First get upload URL
+    const uploadData = await this.request('/profile/upload-url', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        filename: imageFile.name,
+        contentType: imageFile.type 
+      }),
+    });
+
+    // Upload file to S3
+    const formData = new FormData();
+    formData.append('file', imageFile);
+    
+    const uploadResponse = await fetch(uploadData.uploadUrl, {
+      method: 'PUT',
+      body: imageFile,
+      headers: {
+        'Content-Type': imageFile.type,
+      },
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error('Failed to upload image');
+    }
+
+    return {
+      url: uploadData.fileUrl,
+      key: uploadData.key
+    };
+  }
+
+  async getProfile() {
+    return this.request('/profile');
+  }
+
+  async deleteProfile() {
+    return this.request('/profile', {
+      method: 'DELETE',
     });
   }
 }

@@ -5,6 +5,8 @@ A full-stack application store built with Node.js/Express backend and React fron
 ## 🚀 Features
 
 - **User Authentication**: Sign up, login with JWT tokens
+- **Protected Routes**: Dashboard requires authentication
+- **Route Guards**: Automatic redirects based on auth status
 - **App Management**: Create, publish, and manage applications
 - **App Discovery**: Browse, search, and filter apps
 - **Reviews & Ratings**: Users can review and rate apps
@@ -104,6 +106,32 @@ npm run dev
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:5000
 - **API Health Check**: http://localhost:5000/
+
+## 🔐 Authentication & Route Protection
+
+The application uses a comprehensive authentication system with route protection:
+
+### Authentication Context
+- **AuthProvider**: Manages global authentication state
+- **useAuth Hook**: Provides authentication methods and user data
+- **Token Management**: Automatic token storage and validation
+
+### Route Protection
+- **ProtectedRoute**: Guards routes that require authentication
+- **PublicRoute**: Redirects authenticated users away from login/signup
+- **Automatic Redirects**: Seamless navigation based on auth status
+
+### User Flow
+1. **Unauthenticated**: Redirected to login page
+2. **Login/Signup**: Redirected to dashboard after successful auth
+3. **Dashboard Access**: Protected route with user information
+4. **Logout**: Clears session and redirects to login
+
+### Security Features
+- JWT token validation
+- Automatic token refresh
+- Secure logout with token cleanup
+- Protected API endpoints
 
 ## 📚 API Documentation
 

@@ -4,6 +4,7 @@ const { authenticate, requireRole } = require('../middlewares/auth');
 const AppModel = require('../models/App');
 const ReviewModel = require('../models/Review');
 const DownloadModel = require('../models/Download');
+const CategoryModel = require('../models/Category');
 
 // -----------------------------
 // GET /api/apps
@@ -21,7 +22,7 @@ router.get('/', async (req, res, next) => {
     if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice) };
     if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice) };
 
-    let query = AppModel.find(filter);
+    let query = AppModel.find(filter).populate('categories', 'name slug');
 
     // sorting
     if (sort) {
@@ -39,6 +40,40 @@ router.get('/', async (req, res, next) => {
 });
 
 // -----------------------------
+// GET /api/apps/search?q=...
+router.get('/search', async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    if (!q) return res.status(400).json({ error: 'Query parameter q is required' });
+
+    // simple text search on title & description
+    const apps = await AppModel.find({
+      isPublished: true,
+      $or: [
+        { title: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } }
+      ]
+    }).populate('categories', 'name slug').limit(20);
+
+    res.json({ total: apps.length, apps });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// -----------------------------
+// GET /api/apps/categories
+// Get all categories for filtering
+router.get('/categories', async (req, res, next) => {
+  try {
+    const categories = await CategoryModel.find({}).select('name slug');
+    res.json({ categories });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// -----------------------------
 // GET /api/apps/:slug
 // Get single app details
 router.get('/:slug', async (req, res, next) => {
@@ -46,6 +81,38 @@ router.get('/:slug', async (req, res, next) => {
     const app = await AppModel.findOne({ slug: req.params.slug, isPublished: true });
     if (!app) return res.status(404).json({ error: 'App not found' });
     res.json(app);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// -----------------------------
+// GET /api/apps/:id/reviews
+// Get reviews for an app
+router.get('/:id/reviews', async (req, res, next) => {
+  try {
+    const appId = req.params.id;
+    let { page = 1, limit = 10 } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+    
+    const app = await AppModel.findById(appId);
+    if (!app || !app.isPublished) return res.status(404).json({ error: 'App not found' });
+
+    const reviews = await ReviewModel.find({ app: appId })
+      .populate('user', 'name')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const total = await ReviewModel.countDocuments({ app: appId });
+
+    res.json({ 
+      reviews, 
+      total, 
+      page, 
+      totalPages: Math.ceil(total / limit) 
+    });
   } catch (err) {
     next(err);
   }
@@ -103,11 +170,11 @@ router.post('/:id/download', authenticate, async (req, res, next) => {
 
     const latestVersion = app.versions[app.versions.length - 1];
 
-    // Record download
+    // Record download (align with Download schema: use versionId, not versionKey)
     const download = new DownloadModel({
       app: appId,
       user: req.user._id,
-      versionKey: latestVersion.key
+      versionId: latestVersion._id
     });
     await download.save();
 
@@ -128,28 +195,6 @@ router.get('/:id/downloads', authenticate, requireRole('admin'), async (req, res
     const appId = req.params.id;
     const downloads = await DownloadModel.find({ app: appId }).populate('user', 'name email');
     res.json({ downloads });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// -----------------------------
-// GET /api/search?q=...
-router.get('/search', async (req, res, next) => {
-  try {
-    const { q } = req.query;
-    if (!q) return res.status(400).json({ error: 'Query parameter q is required' });
-
-    // simple text search on title & description
-    const apps = await AppModel.find({
-      isPublished: true,
-      $or: [
-        { title: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } }
-      ]
-    }).limit(20);
-
-    res.json({ total: apps.length, apps });
   } catch (err) {
     next(err);
   }
